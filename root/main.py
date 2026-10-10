@@ -211,7 +211,10 @@ while True:
             print(f"You cannot get {item} here.")
 
     #victory condition 1: escaping the forest and surviving the hoard
-
+    if "hunting knife" in inventory and "ammo" in inventory and "grenade launcher" in inventory and "gasoline" in inventory and "helicopter key" in inventory and currentRoom == "Helipad":
+        print("you took the helicopter and escaped the Zombie Hoard, for now....")
+        print("VICTORY!!!!!")
+        break
     #loss condition: getting eaten by the hoard
     if "zombie hoard" in rooms[currentRoom]["items"]:
         print("You were ambushed by the zombie hoard and were eaten")
