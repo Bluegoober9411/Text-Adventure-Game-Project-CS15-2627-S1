@@ -23,23 +23,56 @@ def status():
 
 inventory = []
 rooms = {
+        "Zombie pit"  :{
+                        "east": "Blue Room",
+                        "item": "zombie hoard"
+                     },
+        "Hallway"   :{
+                        "north": "Weapons Vault",
+                        "east": "Red room",
+                        "item": "blue key"
+                     },
+        "Red room"  :{
+                        "west": "Hallway",
+                        "item": "gasoline",
+                        "required": "red key"
+                     },
+        "Blue Room" :{
+                        "east": "Bunker",
+                        "west": "Zombie pit",
+                        "item": "keycard",
+                        "required": "blue key"
+                     },
+        "Attic"     :{
+                        "south": "Bunker",
+                        "item": "helicopter key"
+                     },
+        "Laboratory" :{
+                        "west": "Undead Forest",
+                        "item": "red key",
+                        "required": "keycard"
+                     },
         "Helipad"   :{
                         "north": "Undead Forest",
-                        "item": "grenade launcher"
+                        "item": "ammo"
                      },
         "Undead Forest":{
                         "south": "Helipad",
                         "west" : "Bunker",
-                        "item": "ammo"
+                        "east": "Laboratory",
+                        "item": "grenade launcher"
                      },
         "Bunker"    :{
                         "south": "Weapons Vault",
-                        "east": "Undead Forest"
+                        "east": "Undead Forest",
+                        "north": "Attic",
+                        "west": "Blue Room"
 
                      },
         "Weapons Vault": {
                         "north": "Bunker",
-                        "item": "zombie hoard"
+                        "south": "Hallway",
+                        "item": "hunting knife"
                         }
         }
 currentRoom = "Bunker"
@@ -54,7 +87,7 @@ while True:
 
     #move -> ["go", "south"]
 
-    #os.system("clear")
+    os.system("cls")
     if move[0] == "go":
         if move[1] in rooms[currentRoom]:
             currentRoom = rooms[currentRoom][move[1]]
@@ -70,10 +103,9 @@ while True:
             print(f"You already have the {move[1]}")
 
     #victory condition 1: escaping the forest and surviving the hoard
-    if "hunting knife" in inventory and "ammo" in inventory and "grenade launcher" in inventory and currentRoom == "Helipad":
-        print("you took the helicopter and escaped the Zombie Hoard overrun bunker")
+    if "hunting knife" in inventory and "ammo" in inventory and "grenade launcher" in inventory and "gasoline" in inventory and "helicopter key" in inventory and currentRoom == "Helipad":
+        print("you took the helicopter and escaped the Zombie Hoard, for now....")
         break
-
     #loss condition: getting eaten by the hoard
     if "item" in rooms[currentRoom] and rooms[currentRoom]["item"] == "zombie hoard":
         print("You succumbed to the hoard and were eaten")
@@ -85,21 +117,5 @@ while True:
         print("  |||||")
         print("  |||||")
         break
-    #victory condition 2: defeat the hoard
-if "item" in rooms[currentRoom] and rooms[currentRoom]["item"] == "zombie hoard":
-    if "grenade launcher" and "ammo" in inventory:
-        print("you load the ammo into the grenade launcher")
-        print("you take aim towards the centre of the hoard and shoot")
-        print("the hoard gets blown to smithereens")
-        print("you beat the demo of zombie outbreak! make sure to wishlist on steam!")
-        break
-    else:
-        print("You succumbed to the hoard and were eaten")
-        print("GAME OVER")
-        print("  _____")
-        print(" /      \ ")
-        print("| () () |")
-        print(" \  ^  /")
-        print("  |||||")
-        print("  |||||")
-        break
+
+
