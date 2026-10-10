@@ -3,11 +3,12 @@ import os
 def showinstructions():
     #print a main menu and the commands
     print('''
-    RPG Game
-    ========
+     Zombie Outbreak
+    =================
     Actions:
     Go [direction]
     Get [item]
+    Get all required items and escape with the helicopter!
 ''')
 
 def status():
@@ -29,11 +30,11 @@ rooms = {
                      },
         "Hallway"   :{
                         "north": "Weapons Vault",
-                        "east": "Red room",
+                        "west": "Red room",
                         "item": "blue key"
                      },
         "Red room"  :{
-                        "west": "Hallway",
+                        "east": "Hallway",
                         "item": "gasoline",
                         "required": "red key"
                      },
@@ -49,6 +50,7 @@ rooms = {
                      },
         "Laboratory" :{
                         "west": "Undead Forest",
+                        "south": "Test chamber",
                         "item": "red key",
                         "required": "keycard"
                      },
@@ -73,7 +75,11 @@ rooms = {
                         "north": "Bunker",
                         "south": "Hallway",
                         "item": "hunting knife"
-                        }
+                        },
+        "Test chamber": {
+                        "north": "Laboratory",
+                        "item": "zombie hoard"
+                        },
         }
 currentRoom = "Bunker"
 
@@ -86,14 +92,27 @@ while True:
     move = move.split(" ", 1)
 
     #move -> ["go", "south"]
-
+    # also adds the function that makes you have to have certain items for access to rooms and the item obtainment code
     os.system("cls")
+    showinstructions()
     if move[0] == "go":
         if move[1] in rooms[currentRoom]:
-            currentRoom = rooms[currentRoom][move[1]]
-            print(f"you are now in the {currentRoom}")
+            nextRoom = rooms[currentRoom][move[1]]
+
+            if "required" in rooms[nextRoom]:
+                requiredItem = rooms[nextRoom]["required"]
+
+                if requiredItem in inventory:
+                    currentRoom = nextRoom
+                    print(f"You are now in the {currentRoom}")
+                else:
+                    print(f"You need the {requiredItem} to enter!")
+            else:
+                currentRoom = nextRoom
+                print(f"You are now in the {currentRoom}")
+
         else:
-            print(f"you cannot go {move[1]}")
+            print(f"You cannot go {move[1]}")
     if move[0] == "get":
         if move[1] == rooms[currentRoom]["item"]:
             print(f"you obtained a {move[1]}")
@@ -105,10 +124,11 @@ while True:
     #victory condition 1: escaping the forest and surviving the hoard
     if "hunting knife" in inventory and "ammo" in inventory and "grenade launcher" in inventory and "gasoline" in inventory and "helicopter key" in inventory and currentRoom == "Helipad":
         print("you took the helicopter and escaped the Zombie Hoard, for now....")
+        print("VICTORY!!!!!")
         break
     #loss condition: getting eaten by the hoard
     if "item" in rooms[currentRoom] and rooms[currentRoom]["item"] == "zombie hoard":
-        print("You succumbed to the hoard and were eaten")
+        print("You were ambushed by the zombie hoard and were eaten")
         print("GAME OVER")
         print("  _____")
         print(" /      \ ")
