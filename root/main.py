@@ -1,5 +1,5 @@
 import os
-
+import random
 def showinstructions():
     #print a main menu and the commands
     print('''
@@ -15,23 +15,21 @@ def status():
     print("-----------------")
     print(f"currentRoom: {currentRoom}")
     print(f"inventory: {inventory}")
-    if "item" in rooms[currentRoom] and rooms[currentRoom]["item"]:
-        room_item = rooms[currentRoom]["item"]
-        print(f"you see a {room_item}")
-
-
+    room_items = rooms[currentRoom]["items"]
+    if room_items:
+        print("You see:")
+        for item in room_items:
+            print(f" - {item}")
     print("-----------------")
 
 inventory = []
 rooms = {
-        "Zombie pit"  :{
+        "Garage"  :{
                         "east": "Blue Room",
-                        "item": "zombie hoard"
                      },
         "Hallway"   :{
                         "north": "Weapons Vault",
                         "west": "Red room",
-                        "item": "blue key"
                      },
         "Red room"  :{
                         "east": "Hallway",
@@ -40,29 +38,24 @@ rooms = {
                      },
         "Blue Room" :{
                         "east": "Bunker",
-                        "west": "Zombie pit",
-                        "item": "keycard",
+                        "west": "Garage",
                         "required": "blue key"
                      },
         "Attic"     :{
                         "south": "Bunker",
-                        "item": "helicopter key"
                      },
         "Laboratory" :{
                         "west": "Undead Forest",
                         "south": "Test chamber",
-                        "item": "red key",
                         "required": "keycard"
                      },
         "Helipad"   :{
                         "north": "Undead Forest",
-                        "item": "ammo"
                      },
         "Undead Forest":{
                         "south": "Helipad",
                         "west" : "Bunker",
                         "east": "Laboratory",
-                        "item": "grenade launcher"
                      },
         "Bunker"    :{
                         "south": "Weapons Vault",
@@ -74,13 +67,81 @@ rooms = {
         "Weapons Vault": {
                         "north": "Bunker",
                         "south": "Hallway",
-                        "item": "hunting knife"
                         },
         "Test chamber": {
                         "north": "Laboratory",
-                        "item": "zombie hoard"
                         },
         }
+locked_rooms = {
+    room for room in rooms
+    if "required" in rooms[room]
+}
+locked_rooms.add("Helipad")
+unlocked_rooms = set(rooms.keys()) - locked_rooms
+def spawn_items():
+    for room in rooms:
+        rooms[room]["items"] = []
+    hoard_rooms = ["Garage", "Test chamber", "Attic"]
+    selected_hoard_rooms = random.sample(hoard_rooms, 1)
+    for room in selected_hoard_rooms:
+        rooms[room]["items"].append("zombie hoard")
+    safe_rooms = [
+        room for room in rooms
+        if room not in selected_hoard_rooms
+    ]
+    blue_key_rooms = [
+        room for room in safe_rooms
+        if room in [
+            "Bunker",
+            "Weapons Vault",
+            "Hallway",
+            "Undead Forest"
+        ]
+    ]
+    keycard_rooms = [
+        room for room in safe_rooms
+        if room in [
+            "Bunker",
+            "Weapons Vault",
+            "Hallway",
+            "Undead Forest",
+            "Blue Room",
+            "Garage"
+        ]
+    ]
+    red_key_rooms = [
+        room for room in safe_rooms
+        if room in [
+            "Bunker",
+            "Weapons Vault",
+            "Hallway",
+            "Undead Forest",
+            "Blue Room",
+            "Garage",
+            "Laboratory",
+            "Helipad",
+            "Test chamber"
+        ]
+    ]
+    rooms[random.choice(blue_key_rooms)]["items"].append("blue key")
+    rooms[random.choice(keycard_rooms)]["items"].append("keycard")
+    rooms[random.choice(red_key_rooms)]["items"].append("red key")
+    remaining_items = [
+        "gasoline",
+        "ammo",
+        "grenade launcher",
+        "hunting knife"
+    ]
+    for item in remaining_items:
+        room = random.choice(safe_rooms)
+        rooms[room]["items"].append(item)
+        rooms["Helipad"]["items"] = [
+            item for item in rooms["Helipad"]["items"]
+            if item != "helicopter key"
+        ]
+
+        rooms["Helipad"]["items"].append("helicopter key")
+spawn_items()
 currentRoom = "Bunker"
 
 showinstructions()
@@ -96,38 +157,63 @@ while True:
     os.system("cls")
     showinstructions()
     if move[0] == "go":
-        if move[1] in rooms[currentRoom]:
+        if len(move) < 2:
+            print("Go where?")
+        elif move[1] in rooms[currentRoom]:
             nextRoom = rooms[currentRoom][move[1]]
 
-            if "required" in rooms[nextRoom]:
-                requiredItem = rooms[nextRoom]["required"]
+            if nextRoom not in unlocked_rooms:
 
-                if requiredItem in inventory:
-                    currentRoom = nextRoom
-                    print(f"You are now in the {currentRoom}")
+                # Puzzle guarding the Helipad
+                if nextRoom == "Helipad":
+                    print("A keypad blocks the Helipad!")
+                    print("Solve this puzzle to unlock it:")
+                    print("What is 7 + 5 * 2?")
+
+                    answer = input("> ").strip()
+
+                    if answer == "17":
+                        print("Correct! The Helipad is unlocked!")
+                        unlocked_rooms.add("Helipad")
+                        currentRoom = nextRoom
+                    else:
+                        print("Incorrect! The Helipad remains locked.")
+
+                # Key-locked rooms
                 else:
-                    print(f"You need the {requiredItem} to enter!")
+                    requiredItem = rooms[nextRoom]["required"]
+
+                    if requiredItem in inventory:
+                        inventory.remove(requiredItem)
+                        unlocked_rooms.add(nextRoom)
+                        currentRoom = nextRoom
+
+                        print(f"You used the {requiredItem}!")
+                        print(f"{nextRoom} is now permanently unlocked.")
+                    else:
+                        print(f"You need the {requiredItem} to enter!")
+
             else:
                 currentRoom = nextRoom
                 print(f"You are now in the {currentRoom}")
 
         else:
             print(f"You cannot go {move[1]}")
+
     if move[0] == "get":
-        if move[1] == rooms[currentRoom]["item"]:
-            print(f"you obtained a {move[1]}")
-            inventory.append(move[1])
-            rooms[currentRoom]["item"] = " "
+        item = move[1]
+
+        if item in rooms[currentRoom]["items"]:
+            print(f"You obtained a {item}!")
+            inventory.append(item)
+            rooms[currentRoom]["items"].remove(item)
         else:
-            print(f"You already have the {move[1]}")
+            print(f"You cannot get {item} here.")
 
     #victory condition 1: escaping the forest and surviving the hoard
-    if "hunting knife" in inventory and "ammo" in inventory and "grenade launcher" in inventory and "gasoline" in inventory and "helicopter key" in inventory and currentRoom == "Helipad":
-        print("you took the helicopter and escaped the Zombie Hoard, for now....")
-        print("VICTORY!!!!!")
-        break
+
     #loss condition: getting eaten by the hoard
-    if "item" in rooms[currentRoom] and rooms[currentRoom]["item"] == "zombie hoard":
+    if "zombie hoard" in rooms[currentRoom]["items"]:
         print("You were ambushed by the zombie hoard and were eaten")
         print("GAME OVER")
         print("  _____")
