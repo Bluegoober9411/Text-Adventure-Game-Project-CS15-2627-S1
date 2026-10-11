@@ -9,6 +9,7 @@ def showinstructions():
     Go [direction]
     Get [item]
     Get all required items and escape with the helicopter!
+    But be careful, the hoard has taken over one of three rooms...
 ''')
 
 def status():
@@ -208,7 +209,7 @@ while True:
             inventory.append(item)
             rooms[currentRoom]["items"].remove(item)
         else:
-            print(f"You cannot get {item} here.")
+            print(f"There is no {item} in this room.")
 
     #victory condition 1: escaping the forest and surviving the hoard
     if "hunting knife" in inventory and "ammo" in inventory and "grenade launcher" in inventory and "gasoline" in inventory and "helicopter key" in inventory and currentRoom == "Helipad":
